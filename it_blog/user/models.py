@@ -36,9 +36,9 @@ class User(AbstractUser):
     class Meta:
         db_table = 'user'
         verbose_name = 'User'
-        verbose_name_plural = 'User'
+        verbose_name_plural = 'Users'
 
 @receiver(pre_save, sender=User)
 def hash_password(sender, instance, **kwargs):
-    print(kwargs)
-    instance.set_password(instance.password)
+    if (instance.id is None) or (sender.objects.get(id=instance.id).password != instance.password):
+        instance.set_password(instance.password)
