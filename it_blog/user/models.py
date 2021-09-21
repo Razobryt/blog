@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.db.models.signals import pre_save
 from django.dispatch.dispatcher import receiver
 from django.utils.deconstruct import deconstructible
+from django.utils.html import mark_safe
+
 
 @deconstructible
 class _PhoneValidator:
@@ -15,8 +17,8 @@ class _PhoneValidator:
 
     def __call__(self, value):
         if not self._pattern.match(value):
-            raise ValidationError('{!r}, Value is not a valid phone number.'.format(value))
-
+            raise ValidationError(
+                '{!r}, Value is not a valid phone number.'.format(value))
 
 
 class User(AbstractUser):
@@ -26,6 +28,14 @@ class User(AbstractUser):
         null=True,
         verbose_name='User',
     )
+
+    def show_image(self):
+        return mark_safe('<img src="{}" width="100px" />'.format(
+            'https://freepngimg.com/thumb/youtube/63841-profile-twitch-youtube-avatar-discord-free-download-image.png'
+        )
+        )
+    show_image.short_description = 'Avatar'
+    show_image.allow_tags = True
 
     def send_sms(self, message):
         ...
@@ -37,6 +47,7 @@ class User(AbstractUser):
         db_table = 'user'
         verbose_name = 'User'
         verbose_name_plural = 'Users'
+
 
 @receiver(pre_save, sender=User)
 def hash_password(sender, instance, **kwargs):
