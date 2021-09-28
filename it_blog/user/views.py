@@ -1,21 +1,38 @@
 from django.shortcuts import render, redirect
-from user.forms import UserSignIn
+from django.urls.base import reverse
+from user.forms import UserSignIn, UserLogIn
+# from django.views import View
+from django.views.generic.edit import FormView
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout as log_out
 
 
-def signin(request):
-
-    context = {
-        'signin_form': UserSignIn()
-    }
-    if request.method == "POST":
-        user_form = UserSignIn(request.POST)
-        if user_form.is_valid():
-            user_form.save()
-            return redirect('login_page')
-        context.update(signin_form=user_form)
-
-    return render(request, 'sign_in.html', context)
+@login_required(login_url='login_page')
+def logout(request):
+    log_out(request)
+    return redirect('home_page')
 
 
-def login(request):
-    return render(request, 'home.html', {})
+class Login(FormView):
+    template_name = 'login.html'
+    form_class = UserLogIn
+    success_url = '/home/'
+
+    def get_(self, request):
+        if not self.request.user.is_anonymous:
+            return redirect('home_page')
+        return super().get(request)
+
+    def form_valid(self, form):
+        form.login(self.request)
+        return super().form_valid(form)
+
+
+class Registration(FormView):
+    template_name = 'sign_in.html'
+    form_class = UserSignIn
+    success_url = '/user/login/'
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
